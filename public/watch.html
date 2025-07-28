@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Watch Video</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    video {
+      max-width: 90vw;
+      max-height: 80vh;
+      border: 2px solid #ff4444;
+      border-radius: 8px;
+    }
+    a {
+      color: #ff4444;
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    #uploader {
+      margin-top: 15px;
+      font-size: 1.2em;
+      color: #ff7777;
+    }
+  </style>
+</head>
+<body>
+  <h1>Watch Video</h1>
+  <video id="videoPlayer" controls autoplay></video>
+  <div id="uploader"></div>
+  <br />
+  <a href="dashboard.html">← Back to Dashboard</a>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const src = params.get('src');
+    const user = params.get('user') || 'Unknown';
+
+    const videoPlayer = document.getElementById('videoPlayer');
+    const uploaderDiv = document.getElementById('uploader');
+
+    if (src) {
+      videoPlayer.src = src;
+      uploaderDiv.textContent = `Uploaded by: ${user}`;
+    } else {
+      document.body.innerHTML = '<h2>Invalid video URL.</h2><a href="dashboard.html">Back to Dashboard</a>';
+    }
+  </script>
+</body>
+</html>
