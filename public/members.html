@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crime Town Members</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding-top: 30px;
+    }
+    h2 {
+      color: #ff0000;
+      text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000;
+    }
+    table {
+      margin: auto;
+      border-collapse: collapse;
+      width: 60%;
+      background: rgba(0,0,0,0.7);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+      text-align: left;
+    }
+    th {
+      background: #222;
+      color: #ff4444;
+    }
+    .Owner {
+      color: #ff0000;
+      font-weight: bold;
+    }
+    .Known\ Member {
+      color: gold;
+    }
+    .Higher\ Up {
+      color: #3399ff;
+    }
+    .Lower\ Skid {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Crime Town Members</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Role</th>
+      </tr>
+    </thead>
+    <tbody id="membersTable"></tbody>
+  </table>
+
+  <a href="dashboard.html" style="color:#ff4444; display:block; margin-top:20px; text-decoration:none;">
+    ⬅ Back to Dashboard
+  </a>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const loggedUser = params.get("user") || "Guest"; // gets the user from login
+
+  async function loadMembers() {
+    const response = await fetch("/members");
+    const members = await response.json();
+
+    const table = document.getElementById("membersTable");
+    table.innerHTML = "";
+
+    members.forEach(m => {
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${m.username}</td>
+        <td class="${m.role.replace(" ", "\\ ")}">${m.role}</td>
+      `;
+
+      // Show Promote/Demote buttons ONLY for Owner
+      if (loggedUser === "CrimeBoss" && m.username !== "CrimeBoss") {
+        const actionCell = document.createElement("td");
+
+        const promoteBtn = document.createElement("button");
+        promoteBtn.textContent = "⬆ Promote";
+        promoteBtn.style.marginRight = "5px";
+        promoteBtn.onclick = () => changeRole(m.username, "up");
+
+        const demoteBtn = document.createElement("button");
+        demoteBtn.textContent = "⬇ Demote";
+        demoteBtn.onclick = () => changeRole(m.username, "down");
+
+        actionCell.appendChild(promoteBtn);
+        actionCell.appendChild(demoteBtn);
+        row.appendChild(actionCell);
+      } else {
+        row.appendChild(document.createElement("td"));
+      }
+
+      table.appendChild(row);
+    });
+  }
+
+  async function changeRole(username, direction) {
+    const response = await fetch("/members");
+    const members = await response.json();
+    const member = members.find(m => m.username === username);
+
+    if (!member) return alert("User not found!");
+
+    const currentIndex = ["Owner", "Known Member", "Higher Up", "Lower Skid"].indexOf(member.role);
+
+    let newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    newIndex = Math.max(0, Math.min(newIndex, 3)); // keep in range
+
+    const newRole = ["Owner", "Known Member", "Higher Up", "Lower Skid"][newIndex];
+
+    await fetch("/updateRole", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, newRole })
+    });
+
+    loadMembers();
+  }
+
+  loadMembers();
+</script>
+
